@@ -51,15 +51,17 @@ if __name__ == '__main__':
     history = model.fit(df_ECG_train, ds_lab_train, epochs=10, 
                         validation_data=(df_ECG_val, ds_lab_val))
 
-    # TIMING #
+    # TIMING
     time_stop = time.time()
     time_tensor = time_stop - time_start
 
     # Check accuracy with test data
-    lab_predict = model.predict(df_ECG_test)
+    print()
+    print("Test results")
+    test_loss, test_acc = model.evaluate(df_ECG_test, ds_lab_test, verbose=2)
 
     
-    # TIMING #
+    # TIMING
     print("_" * 80)
     print()
     print("Loading time: ", str(time_loading))
