@@ -6,13 +6,12 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 import keras.api._v2.keras as keras
 from keras import layers, models
-from ecgdetectors import Detectors
 
 # Load ECG data and split into features and labels
 def load_ECG_data(folder_name, file_name):
     file_path = os.path.join(".", folder_name, file_name)
     df = pd.read_csv(file_path, header=None)
-    
+
     df_ECG = df.iloc[:, 0:-1].copy()
     ds_lab = df.iloc[:, -1].copy()
 
@@ -50,14 +49,14 @@ if __name__ == '__main__':
     
     # Fit the model
     history = model.fit(df_ECG_train, ds_lab_train, epochs=10, 
-                    validation_data=(df_ECG_val, ds_lab_val))
+                        validation_data=(df_ECG_val, ds_lab_val))
 
     # TIMING #
     time_stop = time.time()
     time_tensor = time_stop - time_start
 
     # Check accuracy with test data
-    # lab_predict = model.predict(df_ECG_test)
+    lab_predict = model.predict(df_ECG_test)
 
     
     # TIMING #
