@@ -3,6 +3,8 @@ import time
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+
 import tensorflow as tf
 import keras.api._v2.keras as keras
 from keras import layers, models
@@ -67,11 +69,23 @@ if __name__ == '__main__':
     print("Loading time: ", str(time_loading))
     print("Tensor flow time: ", str(time_tensor))
 
+    # Confusion matrix
+    labels_num = range(15)
+    labels = ("N","/","L","R","e","j","A","a","J","S","E","F","V","f","Q")
+
+    lab_predict = tf.math.argmax(model.predict(df_ECG_test), axis=1)
+
+    cm = confusion_matrix(ds_lab_test, lab_predict, labels=labels_num)
+    disp = ConfusionMatrixDisplay(cm, display_labels=labels)
+    disp.plot(cmap='Blues')
+
     # Epoch plot
-    plt.plot(history.history['accuracy'], label='accuracy')
-    plt.plot(history.history['val_accuracy'], label = 'val_accuracy')
-    plt.xlabel('Epoch')
-    plt.ylabel('Accuracy')
-    plt.ylim([0.5, 1])
-    plt.legend(loc='lower right')
+    ep_fig, ep_ax = plt.subplots()
+    ep_ax.plot(history.history['accuracy'], label='accuracy')
+    ep_ax.plot(history.history['val_accuracy'], label = 'val_accuracy')
+    ep_ax.set_xlabel('Epoch')
+    ep_ax.set_ylabel('Accuracy')
+    ep_ax.set_ylim([0.5, 1])
+    ep_ax.legend(loc='lower right')
+
     plt.show()
