@@ -8,25 +8,25 @@ import keras.api._v2.keras as keras
 from keras import layers, models
 from ecgdetectors import Detectors
 
+# Load ECG data and split into features and labels
+def load_ECG_data(folder_name, file_name):
+    file_path = os.path.join(".", folder_name, file_name)
+    df = pd.read_csv(file_path, header=None)
+    
+    df_ECG = df.iloc[:, 0:-1].copy()
+    ds_lab = df.iloc[:, -1].copy()
+
+    return df_ECG, ds_lab
+
+
 if __name__ == '__main__':
     # TIMING
     time_start = time.time()
 
     # Data loading
-    file_path = os.path.join(".", "ECG_data", "train_data.csv")
-    df = pd.read_csv(file_path, header=None)
-    df_ECG_train = df.iloc[:, 0:-1]
-    ds_lab_train = df.iloc[:, -1]
-
-    file_path = os.path.join(".", "ECG_data", "test_data.csv")
-    df = pd.read_csv(file_path, header=None)
-    df_ECG_test = df.iloc[:, 0:-1]
-    ds_lab_test = df.iloc[:, -1]
-
-    file_path = os.path.join(".", "ECG_data", "val_data.csv")
-    df = pd.read_csv(file_path, header=None)
-    df_ECG_val = df.iloc[:, 0:-1]
-    ds_lab_val = df.iloc[:, -1]
+    df_ECG_train, ds_lab_train = load_ECG_data("ECG_data", "train_data.csv")
+    df_ECG_test, ds_lab_test = load_ECG_data("ECG_data", "test_data.csv")
+    df_ECG_val, ds_lab_val = load_ECG_data("ECG_data", "val_data.csv")
 
     # TIMING
     time_stop = time.time()
