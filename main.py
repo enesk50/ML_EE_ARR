@@ -2,12 +2,17 @@ import os
 import time
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
-
 import tensorflow as tf
 import keras.api._v2.keras as keras
 from keras import layers, models
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, f1_score, accuracy_score, precision_score, \
+    recall_score
+from other_models import apply_svm
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+
+
 
 # Load ECG data and split into features and labels
 def load_ECG_data(folder_name, file_name):
@@ -19,8 +24,18 @@ def load_ECG_data(folder_name, file_name):
 
     return df_ECG, ds_lab
 
+def generate_scores(expected_data, predicted_data):
+    # Print the scores:
+    Accuracy_model = accuracy_score(expected_data, predicted_data)
+    F1_mode = f1_score(expected_data, predicted_data, average='weighted')
+    Precision_model = precision_score(expected_data, predicted_data, average='weighted')
+    Recall_model = recall_score(expected_data, predicted_data, average='weighted')
+    print("Accuracy: " + str(Accuracy_model))
+    print("F1 score: " + str(F1_mode))
+    print("Recall score: " + str(Recall_model))
+    print("Precision score: " + str(Precision_model))
 
-if __name__ == '__main__':
+def apply_cnn():
     # TIMING
     time_start = time.time()
 
@@ -35,11 +50,12 @@ if __name__ == '__main__':
 
     # Model setup
     n_time_steps = 250
-    input_shape = (n_time_steps,1)
+    input_shape = (n_time_steps, 1)
 
     model = models.Sequential()
 
     model.add(layers.Conv1D(filters=125, kernel_size=3, activation='relu', input_shape=input_shape))
+    model.add(layers.GlobalMaxPooling1D())
     model.add(layers.Flatten())
     model.add(layers.Dense(units=15, activation='softmax'))
 
@@ -48,9 +64,9 @@ if __name__ == '__main__':
     model.compile(optimizer='adam',
                   loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
                   metrics=['accuracy'])
-    
+
     # Fit the model
-    history = model.fit(df_ECG_train, ds_lab_train, epochs=10, 
+    history = model.fit(df_ECG_train, ds_lab_train, epochs=10,
                         validation_data=(df_ECG_val, ds_lab_val))
 
     # TIMING
@@ -62,7 +78,6 @@ if __name__ == '__main__':
     print("Test results")
     test_loss, test_acc = model.evaluate(df_ECG_test, ds_lab_test, verbose=2)
 
-    
     # TIMING
     print("_" * 80)
     print()
@@ -71,7 +86,7 @@ if __name__ == '__main__':
 
     # Confusion matrix
     labels_num = range(15)
-    labels = ("N","/","L","R","e","j","A","a","J","S","E","F","V","f","Q")
+    labels = ("N", "/", "L", "R", "e", "j", "A", "a", "J", "S", "E", "F", "V", "f", "Q")
 
     lab_predict = tf.math.argmax(model.predict(df_ECG_test), axis=1)
 
@@ -82,10 +97,20 @@ if __name__ == '__main__':
     # Epoch plot
     ep_fig, ep_ax = plt.subplots()
     ep_ax.plot(history.history['accuracy'], label='accuracy')
-    ep_ax.plot(history.history['val_accuracy'], label = 'val_accuracy')
+    ep_ax.plot(history.history['val_accuracy'], label='val_accuracy')
     ep_ax.set_xlabel('Epoch')
     ep_ax.set_ylabel('Accuracy')
     ep_ax.set_ylim([0.5, 1])
     ep_ax.legend(loc='lower right')
 
     plt.show()
+
+    # Scores:
+    generate_scores(ds_lab_test, lab_predict)
+
+if __name__ == '__main__':
+
+    # apply_svm()
+    apply_cnn()
+
+
