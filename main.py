@@ -67,7 +67,7 @@ if __name__ == '__main__':
 
     model.summary()
 
-    opt = keras.optimizers.Adam(learning_rate=0.01)
+    opt = keras.optimizers.Adam()
     model.compile(optimizer=opt,
                   loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
                   metrics=['accuracy'])
