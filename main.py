@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, \
     f1_score, accuracy_score, precision_score, recall_score
+from sklearn.utils.class_weight import compute_class_weight
 
 import tensorflow as tf
 import keras.api._v2.keras as keras
@@ -18,7 +19,7 @@ import matplotlib.pyplot as plt
 # Load ECG data and split into features and labels
 def load_ECG_data(folder_name, file_name):
     file_path = os.path.join(".", folder_name, file_name)
-    df = pd.read_csv(file_path, header=None, nrows=50)
+    df = pd.read_csv(file_path, header=None)
 
     df_ECG = df.iloc[:, 0:-1].copy()
     ds_lab = df.iloc[:, -1].copy()
@@ -45,6 +46,10 @@ if __name__ == '__main__':
     df_ECG_test, ds_lab_test = load_ECG_data("ECG_data", "test_data.csv")
     df_ECG_val, ds_lab_val = load_ECG_data("ECG_data", "val_data.csv")
 
+    # Label definitions
+    labels_num = range(15)
+    labels = ("N", "/", "L", "R", "e", "j", "A", "a", "J", "S", "E", "F", "V", "f", "Q")
+
     # TIMING
     time_stop = time.time()
     time_loading = time_stop - time_start
@@ -56,7 +61,7 @@ if __name__ == '__main__':
     model = models.Sequential()
 
     model.add(layers.Conv1D(filters=125, kernel_size=3, activation='relu', input_shape=input_shape))
-    model.add(layers.GlobalMaxPooling1D())
+    # model.add(layers.GlobalMaxPooling1D())
     model.add(layers.Flatten())
     model.add(layers.Dense(units=15, activation='softmax'))
 
@@ -66,9 +71,13 @@ if __name__ == '__main__':
                   loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
                   metrics=['accuracy'])
 
-    # Fit the model
+    # Fit the model and weight classes
+    class_weights_arr = compute_class_weight('balanced', classes=labels_num, y=ds_lab_train)
+    class_weights_dict = dict(zip(labels_num, class_weights_arr))
+    
     history = model.fit(df_ECG_train, ds_lab_train, epochs=10,
-                        validation_data=(df_ECG_val, ds_lab_val))
+                        validation_data=(df_ECG_val, ds_lab_val),
+                        class_weight=class_weights_dict)
 
     # TIMING
     time_stop = time.time()
@@ -86,9 +95,6 @@ if __name__ == '__main__':
     print("Tensor flow time: ", str(time_tensor))
 
     # Confusion matrix
-    labels_num = range(15)
-    labels = ("N", "/", "L", "R", "e", "j", "A", "a", "J", "S", "E", "F", "V", "f", "Q")
-
     lab_predict = tf.math.argmax(model.predict(df_ECG_test), axis=1)
 
     cm = confusion_matrix(ds_lab_test, lab_predict, labels=labels_num)
@@ -106,7 +112,12 @@ if __name__ == '__main__':
 
     plt.show()
 
-    # Scores:
+    # Scores
+    np.seterr(divide='ignore', invalid='ignore')
+    accuracy_per_class = cm.diagonal()/cm.sum(axis=1)
+    np.seterr(divide='warn', invalid='warn')
     print("_" * 80)
     print()
     generate_scores(ds_lab_test, lab_predict, labels=labels_num)
+    print("Accuracy per class:")
+    print(pd.DataFrame(accuracy_per_class, index=labels, columns=["Accuracy"]))
