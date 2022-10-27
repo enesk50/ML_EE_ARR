@@ -73,12 +73,13 @@ if __name__ == '__main__':
                   metrics=['accuracy'])
 
     # Fit the model and weight classes
-    class_weights_arr = compute_class_weight('balanced', classes=labels_num, y=ds_lab_train)
-    class_weights_dict = dict(zip(labels_num, class_weights_arr))
+    # class_weights_arr = compute_class_weight('balanced', classes=labels_num, y=ds_lab_train)
+    # class_weights_dict = dict(zip(labels_num, class_weights_arr))
     
-    history = model.fit(df_ECG_train, ds_lab_train, epochs=25,
+    history = model.fit(df_ECG_train, ds_lab_train, epochs=10,
                         validation_data=(df_ECG_val, ds_lab_val),
-                        class_weight=class_weights_dict)
+                        # class_weight=class_weights_dict
+                        )
 
     # TIMING
     time_stop = time.time()
@@ -114,11 +115,15 @@ if __name__ == '__main__':
     plt.show()
 
     # Scores
-    np.seterr(divide='ignore', invalid='ignore')
-    accuracy_per_class = cm.diagonal()/cm.sum(axis=1)
-    np.seterr(divide='warn', invalid='warn')
+    accuracy_per_class = []
+    for lab in labels_num:
+        true_negatives = np.sum(np.delete(np.delete(cm, lab, axis=0), lab, axis=1))
+        true_positives = cm[lab, lab]
+        accuracy_per_class.append((true_positives + true_negatives) / np.sum(cm))
+
     print("_" * 80)
     print()
     generate_scores(ds_lab_test, lab_predict, labels=labels_num)
+
     print("Accuracy per class:")
     print(pd.DataFrame(accuracy_per_class, index=labels, columns=["Accuracy"]))
