@@ -26,11 +26,11 @@ def load_ECG_data(folder_name, file_name):
     return df_ECG, ds_lab
 
 # Print the scores
-def generate_scores(expected_data, predicted_data):
+def generate_scores(expected_data, predicted_data, labels):
     Accuracy_model = accuracy_score(expected_data, predicted_data)
-    F1_mode = f1_score(expected_data, predicted_data, average='weighted')
-    Precision_model = precision_score(expected_data, predicted_data, average='weighted')
-    Recall_model = recall_score(expected_data, predicted_data, average='weighted')
+    F1_mode = f1_score(expected_data, predicted_data, average='weighted', zero_division=0, labels=labels)
+    Precision_model = precision_score(expected_data, predicted_data, average='weighted', zero_division=0, labels=labels)
+    Recall_model = recall_score(expected_data, predicted_data, average='weighted', zero_division=0, labels=labels)
     print("Accuracy: " + str(Accuracy_model))
     print("F1 score: " + str(F1_mode))
     print("Recall score: " + str(Recall_model))
@@ -107,4 +107,6 @@ if __name__ == '__main__':
     plt.show()
 
     # Scores:
-    generate_scores(ds_lab_test, lab_predict)
+    print("_" * 80)
+    print()
+    generate_scores(ds_lab_test, lab_predict, labels=labels_num)
