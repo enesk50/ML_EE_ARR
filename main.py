@@ -67,7 +67,8 @@ if __name__ == '__main__':
 
     model.summary()
 
-    model.compile(optimizer='adam',
+    opt = keras.optimizers.Adam(learning_rate=0.01)
+    model.compile(optimizer=opt,
                   loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
                   metrics=['accuracy'])
 
@@ -75,7 +76,7 @@ if __name__ == '__main__':
     class_weights_arr = compute_class_weight('balanced', classes=labels_num, y=ds_lab_train)
     class_weights_dict = dict(zip(labels_num, class_weights_arr))
     
-    history = model.fit(df_ECG_train, ds_lab_train, epochs=10,
+    history = model.fit(df_ECG_train, ds_lab_train, epochs=25,
                         validation_data=(df_ECG_val, ds_lab_val),
                         class_weight=class_weights_dict)
 
