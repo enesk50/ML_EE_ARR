@@ -2,12 +2,13 @@ import os
 import time
 import pandas as pd
 import numpy as np
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, \
+    f1_score, accuracy_score, precision_score, recall_score
+
 import tensorflow as tf
 import keras.api._v2.keras as keras
 from keras import layers, models
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, f1_score, accuracy_score, precision_score, \
-    recall_score
-from other_models import apply_svm
+
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
@@ -17,15 +18,15 @@ import matplotlib.pyplot as plt
 # Load ECG data and split into features and labels
 def load_ECG_data(folder_name, file_name):
     file_path = os.path.join(".", folder_name, file_name)
-    df = pd.read_csv(file_path, header=None)
+    df = pd.read_csv(file_path, header=None, nrows=50)
 
     df_ECG = df.iloc[:, 0:-1].copy()
     ds_lab = df.iloc[:, -1].copy()
 
     return df_ECG, ds_lab
 
+# Print the scores
 def generate_scores(expected_data, predicted_data):
-    # Print the scores:
     Accuracy_model = accuracy_score(expected_data, predicted_data)
     F1_mode = f1_score(expected_data, predicted_data, average='weighted')
     Precision_model = precision_score(expected_data, predicted_data, average='weighted')
@@ -35,7 +36,7 @@ def generate_scores(expected_data, predicted_data):
     print("Recall score: " + str(Recall_model))
     print("Precision score: " + str(Precision_model))
 
-def apply_cnn():
+if __name__ == '__main__':
     # TIMING
     time_start = time.time()
 
@@ -107,10 +108,3 @@ def apply_cnn():
 
     # Scores:
     generate_scores(ds_lab_test, lab_predict)
-
-if __name__ == '__main__':
-
-    # apply_svm()
-    apply_cnn()
-
-
